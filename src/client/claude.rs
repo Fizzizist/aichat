@@ -284,8 +284,12 @@ pub fn claude_build_chat_completions_body(
     if stream {
         body["stream"] = true.into();
     }
+
+    let mut tools: Vec<serde_json::Value> = vec![];
+
+    // Write client tools defined from functions.json
     if let Some(functions) = functions {
-        body["tools"] = functions
+        tools = functions
             .iter()
             .map(|v| {
                 json!({
@@ -296,6 +300,12 @@ pub fn claude_build_chat_completions_body(
             })
             .collect();
     }
+    // Hardcoded web_search server tool
+    tools.push(json!([{"type": "web_search_20250305", "name": "web_search"}]));
+
+    // add tools to the body
+    body["tools"] = json!(tools);
+
     Ok(body)
 }
 
